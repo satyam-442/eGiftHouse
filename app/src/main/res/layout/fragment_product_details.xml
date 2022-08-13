@@ -111,14 +111,14 @@
             <Button
                 android:id="@+id/addToCartBtn"
                 style="@style/SolidButtonStyle"
-                android:layout_marginTop="80dp"
+                android:layout_below="@id/number_btn"
                 android:layout_centerHorizontal="true"
+                android:layout_marginTop="80dp"
                 android:layout_marginBottom="28dp"
-                android:text="A D D   T O   C A R T"
+                android:elevation="15dp"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
-                android:elevation="15dp"
-                android:layout_below="@id/number_btn"/>
+                android:text="A D D   T O   C A R T" />
 
 <!--            <Button
                 android:id="@+id/addToBargainBtn"

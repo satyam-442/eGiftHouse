@@ -172,7 +172,7 @@ public class HomeFragment extends Fragment
                 {
                     IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
                     myReciever = new MyReciever();
-                    Objects.requireNonNull(getActivity()).registerReceiver(myReciever,intentFilter);
+                    requireActivity().registerReceiver(myReciever,intentFilter);
                 }
             }
 

@@ -78,8 +78,6 @@ public class MainActivity extends AppCompatActivity
         navigationView = (NavigationView) findViewById(R.id.navigation_view);
         View navView = navigationView.inflateHeaderView(R.layout.nav_header);
 
-
-
         navProfileHeaderName = (TextView) navView.findViewById(R.id.nav_user_full_name);
         navProfileHeaderEmail = (TextView) navView.findViewById(R.id.nav_user_email);
 

@@ -252,11 +252,11 @@
         android:id="@+id/checkOrders"
         style="@style/SolidButtonStyle"
         android:layout_below="@id/linear4_category"
-        android:gravity="center"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
-        android:text="C h e c k   N e w   O r d e r"
+        android:gravity="center"
         android:paddingStart="15dp"
-        android:paddingEnd="15dp" />
+        android:paddingEnd="15dp"
+        android:text="C h e c k   N e w   O r d e r" />
 
 </RelativeLayout>

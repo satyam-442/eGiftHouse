@@ -1,13 +1,19 @@
 package com.example.egifthouse;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.nfc.Tag;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -27,19 +33,25 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.razorpay.Checkout;
+import com.razorpay.PaymentResultListener;
+
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 
 public class ConfirmFinalOrderFragment extends Fragment
-{
+ implements PaymentResultListener {
 
-    EditText txtConfirmName, txtConfirmPhone, txtConfirmAddress, txtConfirmCity , txtConfirmDate;
+    EditText txtConfirmName, txtConfirmEmail, txtConfirmPhone, txtConfirmAddress, txtConfirmCity , txtConfirmDate;
     Button btnConfirmFinalOrder, btnConfirmDate;
     FirebaseAuth mAuth;
     DatabaseReference confirmOrderRef;
     String currentUserId, totalAmount = "";
+
+    CardView cod_card, pay_online_card;
 
     DatePickerDialog.OnDateSetListener mDateSetListener;
 
@@ -51,14 +63,20 @@ public class ConfirmFinalOrderFragment extends Fragment
     {
         View view = inflater.inflate(R.layout.fragment_confirm_final_order, container, false);
 
+        Checkout.preload(getActivity());
+
         mAuth = FirebaseAuth.getInstance();
         currentUserId = mAuth.getCurrentUser().getUid();
         confirmOrderRef = FirebaseDatabase.getInstance().getReference().child("Orders").child(currentUserId);
+
+        cod_card = view.findViewById(R.id.cod_card);
+        pay_online_card = view.findViewById(R.id.pay_online_card);
 
         totalAmount = getArguments().getString("Total Price");
 
         txtConfirmName = view.findViewById(R.id.shipment_name);
         txtConfirmPhone = view.findViewById(R.id.shipment_phone);
+        txtConfirmEmail = view.findViewById(R.id.shipment_email);
         txtConfirmAddress = view.findViewById(R.id.shipment_address);
         txtConfirmCity = view.findViewById(R.id.shipment_city);
         txtConfirmDate = view.findViewById(R.id.shipment_dateEdt);
@@ -77,7 +95,7 @@ public class ConfirmFinalOrderFragment extends Fragment
                         android.R.style.Animation_Dialog,
                         mDateSetListener,
                         year,month,day);
-                dialog.getWindow().setLayout(480,600);
+                dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT);
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#ffffff")));
                 dialog.show();
             }
@@ -104,10 +122,72 @@ public class ConfirmFinalOrderFragment extends Fragment
             }
         });
 
+        cod_card.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                CheckDetails();
+            }
+        });
+
+        pay_online_card.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                String cusName = txtConfirmName.getText().toString();
+                String cusPhone = txtConfirmPhone.getText().toString();
+                String cusAddress = txtConfirmAddress.getText().toString();
+                String cusCity = txtConfirmCity.getText().toString();
+
+                if (TextUtils.isEmpty(cusName) && TextUtils.isEmpty(cusPhone) && TextUtils.isEmpty(cusAddress) && TextUtils.isEmpty(cusCity))
+                {
+                    Toast.makeText(getActivity(), "Field's are empty!", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    initializeOnlineGateway(totalAmount);
+                }
+            }
+        });
+
+        /*if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_SMS)!= PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.checkSelfPermission(getActivity(),new String[]{Manifest.permission.READ_SMS,Manifest.permission.READ_SMS},);
+        }*/
+
         return view;
     }
 
+    private void initializeOnlineGateway(String totalAmount) {
+            Checkout checkout = new Checkout();
+            checkout.setKeyID("rzp_test_13VlyTkwkKTmjJ");
+            checkout.setImage(R.drawable.ic_launcher_background);
+
+            double finalamt = Float.parseFloat(totalAmount)*100;
+
+            try {
+                JSONObject options = new JSONObject();
+                options.put("name",txtConfirmName.getText().toString());
+                options.put("description","Buying toys");
+                options.put("image","https://s3.amazonaws.com/rzp-mobile/images/rzp.png");
+                options.put("theme.color","#3399cc");
+                options.put("currency","INR");
+                options.put("amount",finalamt);
+                options.put("prefill.email",txtConfirmEmail.getText().toString());
+                options.put("prefill.contact","+91"+txtConfirmPhone.getText().toString());
+
+                checkout.open(getActivity(),options);
+            } catch (Exception e){
+                Log.e("TAG","Error in razor pay checkout",e);
+            }
+    }
+
     private void CheckDetails() {
+
+        SelectPymtMethodFragment homeFragment = new SelectPymtMethodFragment();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.add(R.id.main_container,homeFragment);
+        transaction.commit();
 
         String cusName = txtConfirmName.getText().toString();
         String cusPhone = txtConfirmPhone.getText().toString();
@@ -168,6 +248,10 @@ public class ConfirmFinalOrderFragment extends Fragment
                                             FragmentTransaction transaction = getFragmentManager().beginTransaction();
                                             transaction.add(R.id.main_container,homeFragment);
                                             transaction.commit();
+                                            /*SelectPymtMethodFragment homeFragment = new SelectPymtMethodFragment();
+                                            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                            transaction.add(R.id.main_container,homeFragment);
+                                            transaction.commit();*/
                                         }
                                     }
                                 });
@@ -232,5 +316,15 @@ public class ConfirmFinalOrderFragment extends Fragment
                 }
             }
         });
+    }
+
+    @Override
+    public void onPaymentSuccess(String s) {
+        Toast.makeText(getActivity(), "Payment Success", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPaymentError(int i, String s) {
+        Toast.makeText(getActivity(), "Payment Failed", Toast.LENGTH_SHORT).show();
     }
 }

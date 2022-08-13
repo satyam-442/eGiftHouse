@@ -96,16 +96,16 @@
 
             <com.cepheuen.elegantnumberbutton.view.ElegantNumberButton
                 android:id="@+id/number_btn"
-                android:layout_below="@id/product_price_detailsone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:elevation="6dp"
-                app:textSize="16dp"
-                app:initialNumber="1"
-                app:finalNumber="10"
+                android:layout_below="@id/product_price_detailsone"
                 android:layout_centerHorizontal="true"
                 android:backgroundTint="@color/orange"
-                app:backGroundColor="@color/orange">
+                android:elevation="6dp"
+                app:backGroundColor="@color/orange"
+                app:finalNumber="10"
+                app:initialNumber="1"
+                app:textSize="16dp">
 
             </com.cepheuen.elegantnumberbutton.view.ElegantNumberButton>
 
